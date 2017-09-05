@@ -50,7 +50,7 @@ module Kontena::Cli::Services
         i['instance_number'] == instance.to_i
       }
       exit_with_error("Instance not found") unless service_instance
-      spinner "Removing service instance #{instance_name.colorize(:cyan)} " do
+      spinner "Removing service instance #{pastel.cyan(instance_name)} " do
         client.delete("services/#{parse_service_id(name)}/instances/#{service_instance['id']}")
       end
     end

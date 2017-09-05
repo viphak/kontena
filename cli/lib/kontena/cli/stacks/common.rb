@@ -144,12 +144,12 @@ module Kontena::Cli::Stacks
     end
 
     def hint_on_validation_notifications(errors)
-      $stderr.puts "YAML contains the following unsupported options and they were rejected:".colorize(:yellow)
+      $stderr.puts pastel.yellow("YAML contains the following unsupported options and they were rejected:")
       display_notifications(errors)
     end
 
     def abort_on_validation_errors(errors)
-      $stderr.puts "YAML validation failed! Aborting.".colorize(:red)
+      $stderr.puts pastel.red("YAML validation failed! Aborting.")
       display_notifications(errors, :red)
       abort
     end

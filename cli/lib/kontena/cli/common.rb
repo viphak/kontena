@@ -132,7 +132,7 @@ module Kontena
           logger.debug { msg }
           return
         end
-        puts " [#{ success ? 'done'.colorize(:green) : 'fail'.colorize(:red)}] #{msg}"
+        puts " [#{ success ? pastel.green('done') : pastel.red('fail')}] #{msg}"
       end
 
       def warning(msg)
