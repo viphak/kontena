@@ -36,8 +36,6 @@ module Kontena
           return
         end
 
-        Celluloid::Notifications.publish('service_pod:restart', service_container)
-
         service_container
       end
     end

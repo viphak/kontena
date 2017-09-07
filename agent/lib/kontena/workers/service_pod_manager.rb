@@ -32,6 +32,7 @@ module Kontena::Workers
       populate_workers_from_docker
 
       subscribe('service_pod:update', :on_update_notify)
+      subscribe('service_pod:restart', :on_restart_notify)
       subscribe('service_pod:event', :on_pod_event)
       loop do
         populate_workers_from_master
@@ -41,6 +42,12 @@ module Kontena::Workers
 
     def on_update_notify(_, _)
       populate_workers_from_master
+    end
+
+    # @param topic [String] service_pod:restart
+    # @param event [Hash{service_id: String, instance_number: Integer}]
+    def on_restart_notify(topic, event)
+      notify_worker_restart("#{event[:service_id]}/#{event[:instance_number]}")
     end
 
     def on_pod_event(_, event)
@@ -97,6 +104,15 @@ module Kontena::Workers
         ]
       })
       Docker::Container.all(all: true, filters: filters)
+    end
+
+    # @param id [String]
+    def notify_worker_restart(id)
+      if worker = workers[id]
+        worker.async.restart
+      else
+        warn "ignore restart for unknown service pod: #{id}"
+      end
     end
 
     # @param [Array<String>] current_ids

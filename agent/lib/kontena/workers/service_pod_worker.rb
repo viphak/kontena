@@ -1,5 +1,6 @@
 require_relative '../service_pods/creator'
 require_relative '../service_pods/starter'
+require_relative '../service_pods/restarter'
 require_relative '../service_pods/stopper'
 require_relative '../service_pods/terminator'
 require_relative '../helpers/event_log_helper'
@@ -109,16 +110,21 @@ module Kontena::Workers
       @restarts > 0
     end
 
+    # User requested service restart
+    def restart
+      apply(restart: true)
+    end
+
     def destroy
       @service_pod.mark_as_terminated
       apply
     end
 
-    def apply
+    def apply(restart: false)
       cancel_restart_timers
       exclusive {
         begin
-          @container = ensure_desired_state
+          @container = ensure_desired_state(restart: restart)
           # reset restart counter if instance stays up 10s
           @restart_counter_reset_timer = after(10) {
             info "#{@service_pod.name_for_humans} stayed up 10s, resetting restart backoff counter" if restarting?
@@ -140,7 +146,7 @@ module Kontena::Workers
     end
 
     # @return [Docker::Container, nil]
-    def ensure_desired_state
+    def ensure_desired_state(restart: false)
       debug "state of #{service_pod.name}: #{service_pod.desired_state}"
       service_container = get_container(service_pod.service_id, service_pod.instance_number)
       if service_pod.running? && service_container.nil?
@@ -152,6 +158,9 @@ module Kontena::Workers
       elsif service_container && service_pod.running? && !service_container.running?
         info "starting #{service_pod.name}"
         ensure_started
+      elsif service_container && service_pod.running? && service_container.running? && restart
+        info "restarting #{service_pod.name}"
+        ensure_restarted
       elsif service_pod.stopped? && (service_container && service_container.running?)
         info "stopping #{service_pod.name}"
         ensure_stopped
@@ -191,6 +200,19 @@ module Kontena::Workers
       log_service_pod_event(
         "service:start_instance",
         "Unexpected error while starting service instance #{service_pod.name_for_humans}: #{exc.message}",
+        Logger::ERROR
+      )
+      raise exc
+    end
+
+    def ensure_restarted
+      Kontena::ServicePods::Restarter.new(
+        service_pod.service_id, service_pod.instance_number
+      ).perform
+    rescue => exc
+      log_service_pod_event(
+        "service:restart_instance",
+        "Unexpected error while restarting service instance #{service_pod.name_for_humans}: #{exc.message}",
         Logger::ERROR
       )
       raise exc
