@@ -4,10 +4,10 @@ describe GridServices::Restart do
 
   subject { described_class.new(grid_service: service) }
 
-  it 'sets service state to running' do
+  it 'does not change service state' do
     expect{
       subject.run!
-    }.to change{service.reload.state}.to('running')
+    }.to_not change{service.reload.state}
   end
 
   context 'with a service instance' do
@@ -16,10 +16,10 @@ describe GridServices::Restart do
     context 'without a host node' do
       let(:node) { nil }
 
-      it 'sets service instance state to running' do
+      it 'does not hcnage service instance state' do
         expect{
           subject.run!
-        }.to change{service_instance.reload.desired_state}.to('running')
+        }.to_not change{service_instance.reload.desired_state}
       end
     end
 

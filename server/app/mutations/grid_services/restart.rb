@@ -5,7 +5,6 @@ module GridServices
     end
 
     def execute
-      self.grid_service.set_state('running')
       self.restart_service_instances
     rescue => exc
       add_error(:restart, :error, exc.message)
@@ -13,7 +12,6 @@ module GridServices
 
     def restart_service_instances
       self.grid_service.grid_service_instances.each do |i|
-        i.set(desired_state: 'running')
         restart_service_instance(i)
       end
     end
