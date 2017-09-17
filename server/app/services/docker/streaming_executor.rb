@@ -17,9 +17,9 @@ module Docker
     def start(shell, stdin, tty)
       create_session
       subscribe_to_session
-      if stdin 
+      if stdin
         register_stdin_ws_events(shell, tty)
-      else 
+      else
         register_run_ws_events(shell, tty)
       end
     end
@@ -29,7 +29,7 @@ module Docker
     end
 
     def subscribe_to_session
-      @subscription = MongoPubsub.subscribe("container_exec:#{@exec_session['id']}") do |data|
+      @subscription = MasterPubsub.subscribe("container_exec:#{@exec_session['id']}") do |data|
         if data.has_key?('error')
           @ws.send(JSON.dump({ error: data['error'] }))
           @ws.close(4000)
@@ -53,7 +53,7 @@ module Docker
             if data.has_key?('cmd')
               if shell
                 cmd = ['/bin/sh', '-c', data['cmd'].join(' ')]
-              else 
+              else
                 cmd = data['cmd']
               end
               @client.notify('/containers/run_exec', @exec_session['id'], cmd, tty, true)
@@ -89,7 +89,7 @@ module Docker
           if data.has_key?('cmd')
             if shell
               cmd = ['/bin/sh', '-c', data['cmd'].join(' ')]
-            else 
+            else
               cmd = data['cmd']
             end
             @client.notify('/containers/run_exec', @exec_session['id'], cmd, tty, false)
