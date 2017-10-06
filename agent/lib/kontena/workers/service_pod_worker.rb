@@ -72,9 +72,10 @@ module Kontena::Workers
     # @param event [Docker::Event]
     def on_container_event(topic, event)
       if @container && event.id == @container.id
-        debug "container event: #{event.status}"
+        at = Time.at(event.time_nano / 10**9)
+        debug "container event: #{event.status} at #{at.utc.xmlschema(9)}"
         @container_state_changed = true
-        handle_restart_on_die if event.status == 'die'.freeze
+        handle_restart_on_die if event.status == 'die'.freeze && at > @container.started_at
       end
     end
 
