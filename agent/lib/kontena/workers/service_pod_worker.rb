@@ -259,9 +259,7 @@ module Kontena::Workers
     end
 
     def ensure_restarted
-      Kontena::ServicePods::Restarter.new(
-        service_pod.service_id, service_pod.instance_number
-      ).perform
+      Kontena::ServicePods::Restarter.new(service_pod).perform
     rescue => exc
       log_service_pod_event(
         "service:restart_instance",
