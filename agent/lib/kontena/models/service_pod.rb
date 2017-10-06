@@ -43,7 +43,8 @@ module Kontena
                   :wait_for_port,
                   :volume_specs,
                   :read_only,
-                  :stop_grace_period
+                  :stop_grace_period,
+                  :restarted_at
       attr_accessor :entrypoint, :cmd
 
       # @param [Hash] attrs
@@ -89,6 +90,7 @@ module Kontena
         @wait_for_port = attrs['wait_for_port']
         @read_only = attrs['read_only']
         @stop_grace_period = attrs['stop_grace_period']
+        @restarted_at = nil
       end
 
       # @return [Boolean]
@@ -124,6 +126,10 @@ module Kontena
 
       def mark_as_terminated
         @desired_state = 'terminated'
+      end
+
+      def mark_for_restart
+        @restarted_at = Time.now
       end
 
       # @return [String]

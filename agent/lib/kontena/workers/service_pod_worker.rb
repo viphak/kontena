@@ -116,7 +116,8 @@ module Kontena::Workers
 
     # User requested service restart
     def restart
-      apply(restart: true)
+      @service_pod.mark_for_restart
+      apply
     end
 
     def destroy
@@ -197,7 +198,7 @@ module Kontena::Workers
     end
 
     # @return [Docker::Container, nil]
-    def ensure_desired_state(restart: false)
+    def ensure_desired_state
       debug "state of #{service_pod.name}: #{service_pod.desired_state}"
       service_container = get_container(service_pod.service_id, service_pod.instance_number)
 
@@ -212,7 +213,7 @@ module Kontena::Workers
       elsif service_container && service_pod.running? && !service_container.running?
         info "starting #{service_pod.name}"
         ensure_started
-      elsif service_container && service_pod.running? && service_container.running? && restart
+      elsif service_pod.running? && service_container && service_container.running? && restart_service_container?(service_container)
         info "restarting #{service_pod.name}"
         ensure_restarted
       elsif service_pod.stopped? && (service_container && service_container.running?)
@@ -349,6 +350,11 @@ module Kontena::Workers
     # @return [Boolean]
     def labels_outdated?(service_container)
       service_pod.labels['io.kontena.load_balancer.name'] != service_container.labels['io.kontena.load_balancer.name']
+    end
+
+    # @return [Boolean]
+    def restart_service_container?(service_container)
+      @service_pod.restarted_at && service_container.started_at < @service_pod.restarted_at
     end
 
     # @return [Kontena::Workers::ImagePullWorker]
