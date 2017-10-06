@@ -55,7 +55,7 @@ module Kontena::Workers
         # Restart the container, master will handle re-scheduling logic
         info "About to restart container #{name} as it's reported to be unhealthy"
         emit_service_pod_event("service:health_check", "restarting #{name} because it's reported as unhealthy", Logger::WARN)
-        
+
         restart_container
       end
     end
@@ -107,7 +107,10 @@ module Kontena::Workers
     end
 
     def restart_container
-      Kontena::ServicePods::Restarter.new(@container.service_id, @container.instance_number).perform
+      Celluloid::Notifications.publish('service_pod:restart', {
+        service_id: @container.service_id,
+        instance_number: @container.instance_number,
+      })
     end
 
     # @param [String] type
