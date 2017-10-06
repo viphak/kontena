@@ -8,7 +8,7 @@ module Kontena
       include Kontena::Logging
       include Common
 
-      attr_reader :service_id, :instance_number
+      attr_reader :service_pod
 
       # @param service_id [String]
       # @param instance_number [Integer]
