@@ -60,6 +60,38 @@ module V1
 
         load_grid(grid)
 
+        r.get do
+          r.on ':subject' do |subject|
+            @certificate = @grid.certificates.find_by(subject: subject)
+            if @certificate
+              response.status = 200
+              render('certificates/show')
+            else
+              response.status = 404
+              {error: 'Not found'}
+            end
+          end
+        end
+
+        r.delete do
+          r.on ':subject' do |subject|
+            @certificate = @grid.certificates.find_by(subject: subject)
+            if @certificate
+              outcome = GridCertificates::RemoveCertificate.run(certificate: @certificate)
+              if outcome.success?
+                response.status = 200
+                {}
+              else
+                response.status = 422
+                {error: outcome.errors.message}
+              end
+            else
+              response.status = 404
+              {error: 'Not found'}
+            end
+          end
+        end
+
         r.post do
           # DEPRECATED
           r.on 'authorize' do

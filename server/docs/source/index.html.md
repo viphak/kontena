@@ -870,6 +870,7 @@ follow | Stream logs
   ],
   "memory": 1024000000,
   "memory_swap": 4096000000,
+  "shm_size": 67108864,
   "cpus": 1.5,
   "cpu_shares": 1024,
   "volumes": [
@@ -917,8 +918,10 @@ net | Network mode: bridge, host (default: bridge)
 ports | Array of exposed ports
 env | List of user-defined environment variables to set on the instances of the service (will override the image environment variables)
 secrets | Array of mapped secrets from Kontena Vault
+certificates | Array of mapped certificates from Kontena Vault
 memory | Memory limit (excluding optional swap)
 memory_swap | Allowed memory (including swap)
+shm_size | Size of `/dev/shm` in bytes
 cpus | Specify how much of the available CPU resources (CPU cores) a service instance can use.
 cpu_shares | Relative cpu shares (0-1024)
 volumes | A list of volumes
@@ -1001,6 +1004,14 @@ Attribute | Description
 secret | Secret name in the Kontena Vault
 name | Service local name for the secret
 type | How secret is exposed to a service container
+
+### Certificate attributes
+
+Attribute | Description
+--------- | -----------
+subject | Subject of the certiticate in the Kontena Vault
+name | Service local name for the certificate
+type | How certificate is exposed to a service container
 
 ## List services
 
@@ -1601,8 +1612,6 @@ For example `"secret_name": "FOO_DOMAIN_COM"` will write following secrets to th
 `POST /v1/certificates/{grid_id}/certificate`
 
 # Volumes
-
-**Volumes support is at experimental state which means that there might be breaking changes between versions until the experimental status is removed.**
 
 ## Volume
 
